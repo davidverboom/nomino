@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Registers Page{% endblock %}
+
+{% block content %}
+<form action="/register" method="post">
+	<p>Username:</p>
+	<p><input type="text" name="username" /></p>
+    <p>Password:</p>
+    <p><input type="text" name="password" /></p>
+    <p>Confirmation:</p>
+    <p><input type="text" name="confirmation" /></p>
+	<p><input type="submit" value="Submit"/></p>
+</form>
+{% endblock %}
