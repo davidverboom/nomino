@@ -5,10 +5,14 @@
 <form action="/register" method="post">
 	<p>Username:</p>
 	<p><input type="text" name="username" /></p>
+    <p>E-mail:</p>
+	<p><input type="text" name="email" /></p>
     <p>Password:</p>
     <p><input type="text" name="password" /></p>
     <p>Confirmation:</p>
     <p><input type="text" name="confirmation" /></p>
+    <p>Profile picture:</p>
+    <p><input type="file" name= "profile_picture"/></p>
 	<p><input type="submit" value="Submit"/></p>
 </form>
 {% endblock %}

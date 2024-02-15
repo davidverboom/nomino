@@ -1,19 +1,22 @@
 import os
+import re
 
+from flask import current_app as app
 from flask import Flask, flash, redirect, render_template, request, url_for, session, jsonify
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
-from models import db, Accounts
-from models import db, Profile
+from models import db, Accounts, Review
 
 app = Flask(__name__)
 
   # Tell Flask what SQLAlchemy databas to use.
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'  # Folder to store uploaded files
 
   # Link the Flask app with the database (no Flask app is actually being run yet).
 db.init_app(app)
@@ -48,18 +51,18 @@ def login():
     if request.method == "POST":
         # Ensure username was submitted
         if not request.form.get("username"):
-            return "Apology4"
+            return "no username submitted"
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return "Apology5"
+            return "no password submitted"
 
         # Query database for username
         user = Accounts.query.filter_by(username=request.form.get("username")).first()
 
         # Ensure username exists and password is correct
         if user is None or not check_password_hash(user.hash, request.form.get("password")):
-            return "Apology6"
+            return "password does not match username"
 
         # Remember which user has logged in
         session["user_id"] = user.id
@@ -73,31 +76,43 @@ def login():
     
     # Add a general return statement for GET requests
     return render_template("login.html")
-    
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         # Extract user input from the form
         username = request.form.get("username")
+        email = request.form.get("email")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
+        profile_picture = request.files.get("profile_picture")  # Get the profile picture file
 
         # Validate inputs
-        if not username or not password or not confirmation:
-            return "Apology1"
+        if not username or not email or not password or not confirmation:
+            return "invalid input"
+        elif not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+            return "invalid email format"
         elif password != confirmation:
-            return "Apology2"
+            return "not the same password"
 
         # Check if username already exists
         existing_user = Accounts.query.filter_by(username=username).first()
         if existing_user:
-            return "Apology3"
+            return "username already in database"
 
         # Hash the password
         hashed_password = generate_password_hash(password)
 
+        # Save the profile picture
+        if profile_picture:
+            filename = secure_filename(profile_picture.filename)
+            profile_picture.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        else:
+            profile_picture_path = None
+
         # Create a new user using the Accounts model
-        new_user = Accounts(username=username, hash=hashed_password)
+        new_user = Accounts(username=username, email=email, hash=hashed_password, profile_picture=profile_picture_path)
 
         # Attempt to add the new user to the database and handle exceptions
         try:
@@ -112,58 +127,26 @@ def register():
     else:
         return render_template("register.html")
 
- 
-@app.route("/profile")
-def profile():
-    if "user_id" not in session:
-        return redirect("/login")
-    
-    user_id = session["user_id"]
-    user_profile = Profile.query.filter_by(user_id=user_id).first()
-    
-    return render_template("profile.html", profile=user_profile)
-
-@app.route("/edit_profile", methods=['GET', 'POST'])
-def edit_profile():
-    if "user_id" not in session:
-        return redirect("/login")
-    
-    # Retrieve the user's profile based on the user_id from the session
-    user_id = session["user_id"]
-    user_profile = Profile.query.filter_by(user_id=user_id).first()
-
-    if request.method == 'POST':
-        # Update the user's profile based on the form data
-        full_name = request.form.get("full_name")
-        date_of_birth = request.form.get("date_of_birth")
-        education = request.form.get("education")
-        institution = request.form.get("institution")
-
-        if not user_profile:
-            new_profile = Profile(user_id=user_id, full_name=full_name, date_of_birth=date_of_birth,
-                                  education=education, institution=institution)
-            try:
-                db.session.add(new_profile)
-                db.session.commit()
-                return redirect("/profile")
-            except Exception as e:
-                db.session.rollback()
-                return f"Error: {str(e)}"
-
-        # Update the existing user's profile
-        if user_profile:
-            user_profile.full_name = full_name
-            user_profile.date_of_birth = date_of_birth
-            user_profile.education = education
-            user_profile.institution = institution
-
-            try:
-                db.session.commit()
-                return redirect("/profile")
-            except Exception as e:
-                db.session.rollback()
-                return f"Error: {str(e)}"
-
-        return redirect("/profile")
-
-    return render_template("edit_profile.html", profile=user_profile)
+@app.route("/review", methods=["GET","POST"])
+def submit_review():
+    if request.method == "POST":
+        if "user_id" not in session:
+            return redirect("/login")
+        
+        stars = int(request.form.get("stars"))
+        comment = request.form.get("comment")
+        user_id = session["user_id"]
+        
+        new_review = Review(user_id=user_id, stars=stars, comment=comment)
+        reviews = 
+        
+        try:
+            db.session.add(new_review)
+            db.session.commit()
+            return redirect("/homepage")
+        except Exception as e:
+            db.session.rollback()
+            return f"Error: {str(e)}"
+    else:
+        reviews = Review.query.all()  # Assuming you're fetching all reviews from the database
+        return render_template("review.html", reviews=reviews)
