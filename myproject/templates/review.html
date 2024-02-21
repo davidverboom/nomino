@@ -15,13 +15,13 @@
 <hr>
 
 <h2>Recent Reviews</h2>
-{% for review in reviews %}
+{% for review, username in reviews %}
 <div class="card">
     <div class="card-body">
-        <h5 class="card-title">{{ review.user }}</h5>
+        <h5 class="card-title">{{ username }}</h5>
         <p class="card-text">Stars: {{ review.stars }}</p>
         <p class="card-text">Comment: {{ review.comment }}</p>
     </div>
 </div>
 {% endfor %}
-{% endblock %}  
+{% endblock %}

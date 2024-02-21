@@ -9,7 +9,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
-from models import db, Accounts, Review
+from models import db, Accounts, Review, Product
+from classes import AddProductForm
+
 
 app = Flask(__name__)
 
@@ -23,9 +25,9 @@ db.init_app(app)
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['SECRET_KEY'] = '4d40fd7fcac258f0aa974b12a1422f10'
 
 Session(app)
-
 
 @app.route("/")
 def index():
@@ -33,12 +35,6 @@ def index():
         return redirect("/homepage")
     else:
         return redirect("/login")
-    
-@app.route("/homepage")
-def homepage():
-    if "user_id" not in session:
-        return redirect("/login")
-    return render_template("homepage.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -127,7 +123,7 @@ def register():
     else:
         return render_template("register.html")
 
-@app.route("/review", methods=["GET","POST"])
+@app.route("/review", methods=["GET", "POST"])
 def submit_review():
     if request.method == "POST":
         if "user_id" not in session:
@@ -137,16 +133,54 @@ def submit_review():
         comment = request.form.get("comment")
         user_id = session["user_id"]
         
-        new_review = Review(user_id=user_id, stars=stars, comment=comment)
-        reviews = 
+        review = Review(user_id=user_id, stars=stars, comment=comment)  # Create a Review object
         
         try:
-            db.session.add(new_review)
-            db.session.commit()
-            return redirect("/homepage")
+            db.session.add(review)  # Add the Review object to the session
+            db.session.commit()  # Commit the changes to the database
+            return redirect("/review")
         except Exception as e:
-            db.session.rollback()
+            db.session.rollback()  # Rollback changes in case of an error
             return f"Error: {str(e)}"
     else:
-        reviews = Review.query.all()  # Assuming you're fetching all reviews from the database
+        reviews = db.session.query(Review, Accounts.username).join(Accounts, Review.user_id == Accounts.id).all()
         return render_template("review.html", reviews=reviews)
+
+# Admin panel route
+@app.route("/admin", methods=["GET", "POST"])
+def admin_panel():
+    # Check if the user is logged in as admin
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user = Accounts.query.get(session["user_id"])
+    if user.username != "adminusername":  # Replace with your actual admin username
+        return "you are not an admin"
+
+    form = AddProductForm()
+
+    if form.validate_on_submit():
+        # Save the uploaded image
+        image = form.image.data
+        filename = secure_filename(image.filename)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        # Create a new product
+        new_product = Product(name=form.name.data, price=form.price.data, image=filename)
+
+        try:
+            db.session.add(new_product)
+            db.session.commit()
+            flash('Product added successfully!', 'success')
+            return redirect("/admin")
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
+
+    return render_template("admin_panel.html", form=form)
+
+# Modify homepage route to display products
+@app.route("/homepage")
+def homepage():
+    products = Product.query.all()
+    return render_template("homepage.html", products=products)

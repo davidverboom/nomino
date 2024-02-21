@@ -1,6 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
-from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
@@ -14,7 +12,14 @@ class Accounts(db.Model):
 
 class Review(db.Model):
     __tablename__ = "reviews"
-    user = db.Column(db.String, primary_key=True, autoincrement=True)
-    review_user = db.Column(db.String, db.ForeignKey("users.username"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     stars = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String, nullable=False)
+
+class Product(db.Model):
+    __tablename__ = "products"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    image = db.Column(db.String, nullable=False)

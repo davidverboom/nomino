@@ -1,9 +1,20 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}
-    Profile
-{% endblock %}
+{% block title %}Homepage{% endblock %}
 
 {% block content %}
-    <h1>Your Homepage</h1>
+<h1>Welcome to Our Webshop!</h1>
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <img class="card-img-top" src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">Price: ${{ product.price }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}
