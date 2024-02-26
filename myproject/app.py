@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from models import db, Accounts, Review, Product
 from classes import AddProductForm
+import stripe
 
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ app = Flask(__name__)
   # Tell Flask what SQLAlchemy databas to use.
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Folder to store uploaded files
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 
   # Link the Flask app with the database (no Flask app is actually being run yet).
 db.init_app(app)
@@ -26,6 +27,9 @@ db.init_app(app)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['SECRET_KEY'] = '4d40fd7fcac258f0aa974b12a1422f10'
+
+#set stripe API
+stripe.api_key = 'sk_test_51OmEnSFkF5U5bz8e2ODfcCQB0f6a02FAqQ5LofHcsCJ2KOT0am1NSUHLZjkZ5wHviSHwkqLWLJ0xtVl93EEMMNLy00jMmghGG2'
 
 Session(app)
 
@@ -184,3 +188,97 @@ def admin_panel():
 def homepage():
     products = Product.query.all()
     return render_template("homepage.html", products=products)
+
+@app.route("/product/<int:id>")
+def product_details(id):
+    product = Product.query.get_or_404(id)
+    return render_template("product.html", product=product)
+
+@app.route("/checkout/<int:product_id>", methods=["POST"])
+def create_checkout_session(product_id):
+    product = Product.query.get_or_404(product_id)
+    session_id = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": product.name,
+                    },
+                    "unit_amount": int(product.price * 100),  # Stripe expects amount in cents
+                },
+                "quantity": 1,
+            },
+        ],
+        mode="payment",
+        success_url=url_for("payment_success", _external=True),
+        cancel_url=url_for("payment_cancelled", _external=True),
+    ).id
+    return redirect(url_for("checkout", session_id=session_id))
+
+@app.route("/checkout")
+def checkout():
+    session_id = request.args.get("session_id")
+    if session_id:
+        return render_template("checkout.html", session_id=session_id)
+    else:
+        return "Invalid session ID"
+
+@app.route("/payment/success")
+def payment_success():
+    # Handle successful payment
+    return "Payment successful!"
+
+@app.route("/payment/cancelled")
+def payment_cancelled():
+    # Handle cancelled payment
+    return "Payment cancelled."
+
+
+@app.route("/add_to_cart/<int:product_id>", methods=["POST"])
+def add_to_cart(product_id):
+    if "user_id" not in session:
+        flash("Please log in to add items to your cart.", "warning")
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    product = Product.query.get_or_404(product_id)
+
+    # Check if the item is already in the cart
+    cart_item = Cart.query.filter_by(user_id=user_id, product_id=product_id).first()
+    if cart_item:
+        cart_item.quantity += 1
+    else:
+        cart_item = Cart(user_id=user_id, product_id=product_id)
+        db.session.add(cart_item)
+
+    db.session.commit()
+
+    flash(f"{product.name} added to cart.", "success")
+    return redirect("/homepage")
+
+@app.route("/remove_from_cart/<int:item_id>", methods=["POST"])
+def remove_from_cart(item_id):
+    if "user_id" not in session:
+        flash("Please log in to access your cart.", "warning")
+        return redirect("/login")
+
+    cart_item = Cart.query.get_or_404(item_id)
+    db.session.delete(cart_item)
+    db.session.commit()
+
+    flash("Item removed from cart.", "success")
+    return redirect("/cart")
+
+@app.route("/cart")
+def view_cart():
+    if "user_id" not in session:
+        flash("Please log in to access your cart.", "warning")
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)

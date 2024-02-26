@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Product Details - {{ product.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ product.name }}</h1>
+<img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+<p>Price: ${{ product.price }}</p>
+<form action="{{ url_for('create_checkout_session', product_id=product.id) }}" method="POST">
+    <script
+        src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+        data-key="pk_test_51OmEnSFkF5U5bz8eaLrTYiXJyJfHc14tZnMqjrJ4LS3KdlP0GATUYjZQsvssDImYx7oFJZ8C5Ez62ljHHRItpUOF00x9NvhzC7"
+        data-amount="{{ product.price * 100 }}"
+        data-name="{{ product.name }}"
+        data-description="Purchase of {{ product.name }}"
+        data-image="{{ url_for('static', filename='your-product-image.png') }}"
+        data-currency="usd"
+        data-locale="auto"
+        data-zip-code="false">
+    </script>
+{% endblock %}

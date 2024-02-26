@@ -1,0 +1,59 @@
+{% extends "product.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<h1>Checkout</h1>
+
+<!-- Order Summary -->
+<div>
+    <h2>Order Summary</h2>
+    <ul>
+        {% for item in cart.items %}
+        <li>{{ item.name }} - ${{ item.price }}</li>
+        {% endfor %}
+    </ul>
+    <p>Total: ${{ cart.total }}</p>
+</div>
+
+<!-- Stripe Checkout Button -->
+<script src="https://js.stripe.com/v3/"></script>
+<button id="checkout-button">Pay Now</button>
+
+<!-- Error Handling -->
+{% if error %}
+<div>
+    <p>{{ error }}</p>
+</div>
+{% endif %}
+
+<script>
+    var stripe = Stripe('pk_test_51OmEnSFkF5U5bz8eaLrTYiXJyJfHc14tZnMqjrJ4LS3KdlP0GATUYjZQsvssDImYx7oFJZ8C5Ez62ljHHRItpUOF00x9NvhzC7'); 
+    var checkoutButton = document.getElementById('checkout-button');
+
+    checkoutButton.addEventListener('click', function () {
+        // Create a Stripe Checkout session
+        fetch('/create_checkout_session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                items: [{ name: 'Product Name', price: 1000 }] // 
+            })
+        }).then(function (response) {
+            return response.json();
+        }).then(function (session) {
+            // Redirect to Stripe Checkout page
+            return stripe.redirectToCheckout({ sessionId: session.id });
+        }).then(function (result) {
+            // Handle any errors
+            if (result.error) {
+                console.error(result.error);
+                // Display error message to the user
+                // (You can modify the template to display the error message)
+            }
+        });
+    });
+</script>
+{% endblock %}
