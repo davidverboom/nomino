@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Payment Success{% endblock %}
+{% block content %}
+<h1>Payment Successful!</h1>
+
+<!-- Order Summary -->
+<h2>Order Summary</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart_items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>${{ item.product.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.product.price * item.quantity }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p>Total: ${{ total_price }}</p>
+
+<!-- Shipping Information -->
+<h2>Shipping Information</h2>
+<ul>
+    <li><strong>Name:</strong> {{ shipping_info.name }}</li>
+    <li><strong>Address:</strong> {{ shipping_info.address }}</li>
+    <li><strong>City:</strong> {{ shipping_info.city }}</li>
+    <li><strong>State/Province:</strong> {{ shipping_info.state_province }}</li>
+    <li><strong>Zip Code:</strong> {{ shipping_info.zipcode }}</li>
+    <li><strong>Country:</strong> {{ shipping_info.country }}</li>
+    <li><strong>Phone Number:</strong> {{ shipping_info.phone }}</li>
+    <li><strong>Date of Birth:</strong> {{ shipping_info.date_of_birth }}</li>
+</ul>
+{% endblock %}

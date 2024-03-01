@@ -9,9 +9,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
-from models import db, Accounts, Review, Product
+from models import db, Accounts, Review, Product, Cart, ShippingInformation
 from classes import AddProductForm
 import stripe
+from flask_mail import Mail, Message
 
 
 app = Flask(__name__)
@@ -27,6 +28,14 @@ db.init_app(app)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['SECRET_KEY'] = '4d40fd7fcac258f0aa974b12a1422f10'
+
+# Configure e-mail
+app.config["MAIL_SERVER"] = 'smtp.gmail.com'
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USERNAME"] = 'oefenflaskminprog@gmail.com'
+app.config["PASSWORD"] = 'MinProg1sept2024'
+app.config["USE_SSL"] = True
+mail = Mail(app)
 
 #set stripe API
 stripe.api_key = 'sk_test_51OmEnSFkF5U5bz8e2ODfcCQB0f6a02FAqQ5LofHcsCJ2KOT0am1NSUHLZjkZ5wHviSHwkqLWLJ0xtVl93EEMMNLy00jMmghGG2'
@@ -76,6 +85,13 @@ def login():
     
     # Add a general return statement for GET requests
     return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    # Clear the session
+    session.clear()
+    # Redirect to the login page after logging out
+    return redirect("/login")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -150,7 +166,6 @@ def submit_review():
         reviews = db.session.query(Review, Accounts.username).join(Accounts, Review.user_id == Accounts.id).all()
         return render_template("review.html", reviews=reviews)
 
-# Admin panel route
 @app.route("/admin", methods=["GET", "POST"])
 def admin_panel():
     # Check if the user is logged in as admin
@@ -181,7 +196,10 @@ def admin_panel():
             db.session.rollback()
             flash(f'Error: {str(e)}', 'error')
 
-    return render_template("admin_panel.html", form=form)
+    # Fetch all products from the database
+    products = Product.query.all()
+
+    return render_template("admin_panel.html", form=form, products=products)
 
 # Modify homepage route to display products
 @app.route("/homepage")
@@ -194,9 +212,12 @@ def product_details(id):
     product = Product.query.get_or_404(id)
     return render_template("product.html", product=product)
 
-@app.route("/checkout/<int:product_id>", methods=["POST"])
-def create_checkout_session(product_id):
-    product = Product.query.get_or_404(product_id)
+@app.route("/checkout/<int:id>", methods=["POST"])
+def create_checkout_session(id):
+    user_id = session["user_id"]
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+    total_price = int(sum(item.product.price * item.quantity for item in cart_items))  # Convert to integer
+
     session_id = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -204,9 +225,9 @@ def create_checkout_session(product_id):
                 "price_data": {
                     "currency": "usd",
                     "product_data": {
-                        "name": product.name,
+                        "name": "your cart",
                     },
-                    "unit_amount": int(product.price * 100),  # Stripe expects amount in cents
+                    "unit_amount": total_price,
                 },
                 "quantity": 1,
             },
@@ -215,61 +236,107 @@ def create_checkout_session(product_id):
         success_url=url_for("payment_success", _external=True),
         cancel_url=url_for("payment_cancelled", _external=True),
     ).id
-    return redirect(url_for("checkout", session_id=session_id))
+    return redirect(url_for("checkout", session_id=session_id, user_id=id))
+
 
 @app.route("/checkout")
 def checkout():
-    session_id = request.args.get("session_id")
-    if session_id:
-        return render_template("checkout.html", session_id=session_id)
-    else:
-        return "Invalid session ID"
+    if "user_id" not in session:
+        flash("Please log in to access your cart.", "warning")
+        return redirect("/login")
 
-@app.route("/payment/success")
-def payment_success():
-    # Handle successful payment
-    return "Payment successful!"
+    user_id = session["user_id"]
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+    cart_id = db.session.query(Cart.id).filter_by(user_id=user_id).scalar()
+
+    if cart_items:
+        return render_template("checkout.html", cart_items=cart_items, total_price=total_price, cart_id=cart_id)
+    else:
+        flash("Your cart is empty.", "warning")
+        return redirect("/homepage")
 
 @app.route("/payment/cancelled")
 def payment_cancelled():
     # Handle cancelled payment
     return "Payment cancelled."
 
-
-@app.route("/add_to_cart/<int:product_id>", methods=["POST"])
-def add_to_cart(product_id):
+@app.route("/add_to_cart/<int:id>", methods=["POST"])
+def add_to_cart(id):
     if "user_id" not in session:
         flash("Please log in to add items to your cart.", "warning")
         return redirect("/login")
 
     user_id = session["user_id"]
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.get_or_404(id)
 
     # Check if the item is already in the cart
-    cart_item = Cart.query.filter_by(user_id=user_id, product_id=product_id).first()
+    cart_item = Cart.query.filter_by(user_id=user_id, product_id=id).first()
     if cart_item:
         cart_item.quantity += 1
     else:
-        cart_item = Cart(user_id=user_id, product_id=product_id)
+        cart_item = Cart(user_id=user_id, product_id=id, quantity=1)
         db.session.add(cart_item)
 
     db.session.commit()
 
+    # Update session with cart information
+    session["cart"] = [{"product_id": item.product_id, "quantity": item.quantity} for item in Cart.query.filter_by(user_id=user_id)]
+
     flash(f"{product.name} added to cart.", "success")
     return redirect("/homepage")
 
-@app.route("/remove_from_cart/<int:item_id>", methods=["POST"])
-def remove_from_cart(item_id):
+@app.route("/remove_from_cart/<int:id>", methods=["POST"])
+def remove_from_cart(id):
     if "user_id" not in session:
         flash("Please log in to access your cart.", "warning")
         return redirect("/login")
 
-    cart_item = Cart.query.get_or_404(item_id)
-    db.session.delete(cart_item)
+    cart_item = Cart.query.get_or_404(id)
+    if cart_item.quantity > 1:
+        # Decrement the quantity if it's greater than 1
+        cart_item.quantity -= 1
+    else:
+        # Remove the item from the cart if the quantity is 1
+        db.session.delete(cart_item)
+
     db.session.commit()
 
     flash("Item removed from cart.", "success")
     return redirect("/cart")
+
+@app.route("/delete_product/<int:id>", methods=["POST"])
+def delete_product(id):
+    if "user_id" not in session:
+        flash("Please log in as admin to delete products.", "warning")
+        return redirect("/login")
+
+    user = Accounts.query.get(session["user_id"])
+    if user.username != "adminusername":  # Replace with your actual admin username
+        flash("You are not authorized to delete products.", "danger")
+        return redirect("/admin")
+
+    product = Product.query.get_or_404(id)
+
+    # Fetch associated cart items for the product
+    cart_items = Cart.query.filter_by(product_id=id).all()
+
+    try:
+        # Delete associated cart items
+        for cart_item in cart_items:
+            db.session.delete(cart_item)
+
+        # Delete the product
+        db.session.delete(product)
+        db.session.commit()
+
+        flash(f"Product {product.name} deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error: {str(e)}", "error")
+
+    return redirect("/admin")
+
 
 @app.route("/cart")
 def view_cart():
@@ -282,3 +349,51 @@ def view_cart():
     total_price = sum(item.product.price * item.quantity for item in cart_items)
 
     return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+
+@app.route("/shipping_info", methods=["POST"])
+def submit_shipping_info():
+    if request.method == "POST":
+        if "user_id" not in session:
+            return redirect("/login")
+        
+        user_id = session["user_id"]
+        address = request.form.get("address")
+        city = request.form.get("city")
+        state_province = request.form.get("state_province")
+        zipcode = request.form.get("zipcode")
+        country = request.form.get("country")
+        phone = request.form.get("phone")
+        date_of_birth = request.form.get("date_of_birth")
+        
+        shipping_info = ShippingInformation(user_id=user_id, address=address, city=city, state_province=state_province, zipcode=zipcode, country=country, phone=phone, date_of_birth=date_of_birth)
+        
+        try:
+            db.session.add(shipping_info)
+            db.session.commit()
+            return redirect("/success")  # Redirect to a success page after submitting shipping information
+        except Exception as e:
+            db.session.rollback()
+            return f"Error: {str(e)}"
+    else:
+        return "Method not allowed"  # Only POST requests are allowed for submitting shipping information
+
+def send_email(subject, body, recipients):
+    msg = Message(subject, recipients=recipients)
+    msg.body = body
+    mail.send(msg)
+
+@app.route("/success")
+def payment_success():
+    # Fetch user's cart items and shipping information
+    user_id = session["user_id"]
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+    shipping_info = ShippingInformation.query.filter_by(user_id=user_id).first()
+
+    # Calculate total price
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    # Send email notification
+    send_email("Your payment was successful", "Thank you for ordering", [shipping_info.email])
+
+    return render_template("success.html", cart_items=cart_items, shipping_info=shipping_info, total_price=total_price)
+

@@ -197,3 +197,26 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route("/checkout/<int:id>", methods=["POST"])
+def create_checkout_session(id):
+    product = Product.query.get_or_404(id)
+    session_id = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": "your cart",
+                    },
+                    "unit_amount": int(product.price * 100),  # Stripe expects amount in cents
+                },
+                "quantity": 1,
+            },
+        ],
+        mode="payment",
+        success_url=url_for("payment_success", _external=True),
+        cancel_url=url_for("payment_cancelled", _external=True),
+    ).id
+    return redirect(url_for("checkout", session_id=session_id))

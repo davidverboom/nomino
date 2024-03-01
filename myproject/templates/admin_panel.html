@@ -17,4 +17,24 @@
     </div>
     <button type="submit" class="btn btn-primary">Add Product</button>
 </form>
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <a href="{{ url_for('product_details', id=product.id) }}">
+                <img class="card-img-top" src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+            </a>
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">Price: ${{ product.price }}</p>
+            </div>
+            <form action="{{ url_for('delete_product', id=product.id) }}" method="post">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
 {% endblock %}
