@@ -1,222 +1,145 @@
-import os
-import requests
-from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, login_required, lookup, usd
-from sqlalchemy import or_
+<script type="module">
+      import {
+        Camera,
+        DirectionalLight,
+        Color,
+        Material,
+        PointLight,
+        WebGLRenderer,
+        Scene,
+        PerspectiveCamera,
+        Texture,
+        AmbientLight,
+      } from 'https://unpkg.com/three@0.120.1/build/three.module.js'
+      import { OrbitControls } from 'https://unpkg.com/three@0.120.1/examples/jsm/controls/OrbitControls.js'
+      import { GLTFLoader } from 'https://unpkg.com/three@0.120.1/examples/jsm/loaders/GLTFLoader.js'
 
-from models import *
+      let scene, camera, renderer;
 
-app = Flask(__name__)
+      function init() {
 
-  # Tell Flask what SQLAlchemy databas to use.
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+        scene = new Scene();
+        scene.background = new Color(0xdddddd);
 
-  # Link the Flask app with the database (no Flask app is actually being run yet).
-db.init_app(app)
+        camera = new PerspectiveCamera(40,window.innerWidth/window.innerHeight,1,5000);
+        camera.rotation.y = 45/180*Math.PI;
+        camera.position.x = 8;
+        camera.position.y = 1;
+        camera.position.z = 10;
 
+        const hlight = new AmbientLight (0x404040,100);
+        scene.add(hlight);
 
-# Configure session to use filesystem
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
+        const directionalLight = new DirectionalLight(0xffffff,100);
+        directionalLight.position.set(0,1,0);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+        const light = new PointLight(0xc4c4c4,10);
+        light.position.set(0,300,500);
+        scene.add(light);
+        const light2 = new PointLight(0xc4c4c4,10);
+        light2.position.set(500,100,0);
+        scene.add(light2);
+        const light3 = new PointLight(0xc4c4c4,10);
+        light3.position.set(0,100,-500);
+        scene.add(light3);
+        const light4 = new PointLight(0xc4c4c4,10);
+        light4.position.set(-500,300,500);
+        scene.add(light4);
 
-Session(app)
+        renderer = new WebGLRenderer({antialias:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
+        const controls = new OrbitControls(camera, renderer.domElement);
+        // controls.addEventListener('change', renderer);
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    return render_template("index.html")
-    
-        
-@app.route("/search", methods=["GET", "POST"])
-def search():
-    if request.method == "GET":
-        return render_template("search.html")
-    else:
-        # title = request.form.get("title")
-        # author = request.form.get("author")
-        # isbn = request.form.get("isbn")
-        search = request.form.get("search")
-        books = Book.query.filter(or_(Book.title == search, Book.author == search, Book.isbn == search))
-        print("test2")
-        print(book)
-        if not books:
-            return render_template("error.html", error = "No book with that criteria")
-        else:
-            return render_template("isbn.html", books = books)
+        let loader = new GLTFLoader();
+        loader.load(<script type="module">
+      import {
+        Camera,
+        DirectionalLight,
+        Color,
+        Material,
+        PointLight,
+        WebGLRenderer,
+        Scene,
+        PerspectiveCamera,
+        Texture,
+        AmbientLight,
+      } from 'https://unpkg.com/three@0.120.1/build/three.module.js'
+      import { OrbitControls } from 'https://unpkg.com/three@0.120.1/examples/jsm/controls/OrbitControls.js'
+      import { GLTFLoader } from 'https://unpkg.com/three@0.120.1/examples/jsm/loaders/GLTFLoader.js'
 
+      let scene, camera, renderer;
 
+      function init() {
 
-@app.route("/book/<isbn>", methods=["GET", "POST"])
-def book(isbn):
-    if request.method == "GET":
-        book = Book.query.filter_by(isbn = isbn).first()
-        reviews = Review.query.filter_by(book_id = isbn)
-        print(f"{book.isbn}")
-        response = requests.get(f"https://openlibrary.org/api/books?bibkeys=ISBN:{book.isbn}&jscmd=details&format=json")
-        data = response.json()
-        if "description" in data.get("details", {}):
-            description = data["details"]["description"]
-        else:
-            description = "Description not available"
-    
-        print("test4")
-        print(data)
-        print(description)
-        if book == None:
-            return render_template("error.html",error = "Book does not exist in database")
-        
-        return render_template("book.html",book = book, reviews = reviews)
-    
-    elif request.method == "POST":
-        book = Book.query.filter_by(isbn = isbn).first()
-        reviews = Review.query.filter_by(book_id = isbn)
-        rating = request.form.get("rate")
-        user_id = session["user_id"]
-        review_text = request.form.get("review_text")
+        scene = new Scene();
+        scene.background = new Color(0xdddddd);
 
-        # test if user has already reviewed certain book
-        if Review.query.filter_by(user_id = user_id, book_id = isbn).first() == None:
-            print("Not reviewed")
-            new_review = Review(user_id = user_id,book_id = isbn,rating = rating, text = review_text)
-            db.session.add(new_review)
-            db.session.commit()
-            return render_template("book.html",book = book, reviews = reviews)
-        else:
-            return render_template("error.html", error = "You have already reviewed this book.")
+        camera = new PerspectiveCamera(40,window.innerWidth/window.innerHeight,1,5000);
+        camera.rotation.y = 45/180*Math.PI;
+        camera.position.x = 8;
+        camera.position.y = 1;
+        camera.position.z = 10;
 
-    
-# @app.route("/book/<isbn>/review",methods=["POST"])
-# def review(isbn):
+        const hlight = new AmbientLight (0x404040,100);
+        scene.add(hlight);
 
-@app.route("/reviewed", methods = ["GET"])
-def reviewed():
-    user_id = session["user_id"]
-    reviewed = Review.query.filter_by(user_id = user_id)
+        const directionalLight = new DirectionalLight(0xffffff,100);
+        directionalLight.position.set(0,1,0);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+        const light = new PointLight(0xc4c4c4,10);
+        light.position.set(0,300,500);
+        scene.add(light);
+        const light2 = new PointLight(0xc4c4c4,10);
+        light2.position.set(500,100,0);
+        scene.add(light2);
+        const light3 = new PointLight(0xc4c4c4,10);
+        light3.position.set(0,100,-500);
+        scene.add(light3);
+        const light4 = new PointLight(0xc4c4c4,10);
+        light4.position.set(-500,300,500);
+        scene.add(light4);
 
-    return render_template("reviewed.html", reviewed = reviewed)
+        renderer = new WebGLRenderer({antialias:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
+        const controls = new OrbitControls(camera, renderer.domElement);
+        // controls.addEventListener('change', renderer);
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """Register user"""
-    # Forget any user_id
-    session.clear()
+        let loader = new GLTFLoader();
+        loader.load('{{ url_for("static", filename="uploads/" + product.three_d_view) }}', function(gltf){
+          const car = gltf.scene.children[0];
+          console.log('car: ', car);
+          car.scale.set(0.5,0.5,0.5);
+          scene.add(car);
+          animate();
+        });
+      }
+      function animate() {
+        renderer.render(scene,camera);
+        requestAnimationFrame(animate);
+      }
+      init();
+    </script>, function(gltf){
+          const car = gltf.scene.children[0];
+          console.log('car: ', car);
+          car.scale.set(0.5,0.5,0.5);
+          scene.add(car);
+          animate();
+        });
+      }
+      function animate() {
+        renderer.render(scene,camera);
+        requestAnimationFrame(animate);
+      }
+      init();
+    </script>
 
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        confirmed_password = request.form.get("confirmation")
-        if User.query.filter_by(username=username).first():
-            return apology("This username already exists",400)
-
-        # Ensure username was submitted
-        if not username:
-            return apology("must provide username", 400)
-
-        elif not password:
-            return apology("must provide password", 400)
-                # Ensure password was submitted
-        elif not confirmed_password:
-            return apology("must provide confirmation")
-        
-        elif password != confirmed_password:
-            return apology("Passwords do not match", 400)
-            # ensures confirmation password is equal to password
-        
-        
-        else:
-            hashed_password = generate_password_hash(password)
-            # generats hashes password for security
-            new_user = User(username = username, hash = hashed_password)
-
-            # Adds users input to register
-            db.session.add(new_user)
-            db.session.commit()
-            session["user_id"] = new_user.id
-            # login user
-
-            return redirect("/")
-    else:
-        render_template("register.html") 
-
-
-    return render_template("register.html")
-            
-
-
-
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    """Log user in"""
-
-    # Forget any user_id
-    session.clear()
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return apology("must provide password", 403)
-
-        # Query database for username
-        user = User.query.filter_by(username=request.form.get("username")).first()
-
-        # Ensure username exists and password is correct
-        if not user or not check_password_hash(user.hash, request.form.get("password")):
-            return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = user.id
-
-        # Redirect user to home page
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("login.html")
-    
-@app.route("/logout")
-def logout():
-    """Log user out"""
-
-    # Forget any user_id
-    session.clear()
-
-    # Redirect user to login form
-    return redirect("/")
-
-@app.route("/checkout/<int:id>", methods=["POST"])
-def create_checkout_session(id):
-    product = Product.query.get_or_404(id)
-    session_id = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {
-                        "name": "your cart",
-                    },
-                    "unit_amount": int(product.price * 100),  # Stripe expects amount in cents
-                },
-                "quantity": 1,
-            },
-        ],
-        mode="payment",
-        success_url=url_for("payment_success", _external=True),
-        cancel_url=url_for("payment_cancelled", _external=True),
-    ).id
-    return redirect(url_for("checkout", session_id=session_id))
+(venv)$ export STRIPE_PUBLISHABLE_KEY=pk_test_VOOyyYjgzqdm8I3SrBqmh9qY
+(venv)$ export STRIPE_SECRET_KEY=sk_test_Gx4mWEgHtCMr4DYMUIqfIrsz
+(env)$ export STRIPE_ENDPOINT_SECRET=<YOUR_ENDPOINT_SECRET_KEY>

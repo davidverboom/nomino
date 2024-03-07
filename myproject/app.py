@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from models import db, Accounts, Review, Product, Cart, ShippingInformation
-from classes import AddProductForm
+from classes import AddProductForm, ShippingInformationForm
 import stripe
 from flask_mail import Mail, Message
 
@@ -29,17 +29,12 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['SECRET_KEY'] = '4d40fd7fcac258f0aa974b12a1422f10'
 
-# Configure e-mail
-app.config["MAIL_SERVER"] = 'smtp.gmail.com'
-app.config["MAIL_PORT"] = 465
-app.config["MAIL_USERNAME"] = 'oefenflaskminprog@gmail.com'
-app.config["PASSWORD"] = 'MinProg1sept2024'
-app.config["USE_SSL"] = True
-mail = Mail(app)
+stripe_keys = {
+    "secret_key": os.environ["STRIPE_SECRET_KEY"],
+    "publishable_key": os.environ["STRIPE_PUBLISHABLE_KEY"]
+}
 
-#set stripe API
-stripe.api_key = 'sk_test_51OmEnSFkF5U5bz8e2ODfcCQB0f6a02FAqQ5LofHcsCJ2KOT0am1NSUHLZjkZ5wHviSHwkqLWLJ0xtVl93EEMMNLy00jMmghGG2'
-
+stripe.api_key = stripe_keys["secret_key"]
 Session(app)
 
 @app.route("/")
@@ -185,7 +180,7 @@ def admin_panel():
         image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         # Create a new product
-        new_product = Product(name=form.name.data, price=form.price.data, image=filename)
+        new_product = Product(name=form.name.data, price=form.price.data, image=filename, description=form.description.data)
 
         try:
             db.session.add(new_product)
@@ -212,32 +207,44 @@ def product_details(id):
     product = Product.query.get_or_404(id)
     return render_template("product.html", product=product)
 
-@app.route("/checkout/<int:id>", methods=["POST"])
-def create_checkout_session(id):
+@app.route("/config")
+def get_publishable_key():
+    stripe_config = {"publicKey": stripe_keys["publishable_key"]}
+    return jsonify(stripe_config)
+
+@app.route("/create-checkout-session")
+def create_checkout_session():
+    domain_url = "http://localhost:5000/"
+    stripe.api_key = stripe_keys["secret_key"]
+    if "user_id" not in session:
+        return redirect("/login")
     user_id = session["user_id"]
     cart_items = Cart.query.filter_by(user_id=user_id).all()
     total_price = int(sum(item.product.price * item.quantity for item in cart_items))  # Convert to integer
 
-    session_id = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {
-                        "name": "your cart",
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            success_url=domain_url + f"success?session_id={{CHECKOUT_SESSION_ID}}&user_id={user_id}",
+            cancel_url=domain_url + "cancelled",
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": "your cart",
+                        },
+                        "unit_amount": total_price,
                     },
-                    "unit_amount": total_price,
+                    "quantity": 100,
                 },
-                "quantity": 1,
-            },
-        ],
-        mode="payment",
-        success_url=url_for("payment_success", _external=True),
-        cancel_url=url_for("payment_cancelled", _external=True),
-    ).id
-    return redirect(url_for("checkout", session_id=session_id, user_id=id))
-
+            ],
+        )
+        return jsonify({"sessionId": checkout_session["id"]})
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+    
 
 @app.route("/checkout")
 def checkout():
@@ -248,10 +255,10 @@ def checkout():
     user_id = session["user_id"]
     cart_items = Cart.query.filter_by(user_id=user_id).all()
     total_price = sum(item.product.price * item.quantity for item in cart_items)
-    cart_id = db.session.query(Cart.id).filter_by(user_id=user_id).scalar()
+    shipping_info = ShippingInformation.query.filter_by(user_id=user_id).first()
 
     if cart_items:
-        return render_template("checkout.html", cart_items=cart_items, total_price=total_price, cart_id=cart_id)
+        return render_template("checkout.html", cart_items=cart_items, total_price=total_price, shipping_info=shipping_info)
     else:
         flash("Your cart is empty.", "warning")
         return redirect("/homepage")
@@ -350,50 +357,62 @@ def view_cart():
 
     return render_template("cart.html", cart_items=cart_items, total_price=total_price)
 
-@app.route("/shipping_info", methods=["POST"])
-def submit_shipping_info():
-    if request.method == "POST":
-        if "user_id" not in session:
-            return redirect("/login")
-        
+@app.route("/shipping_info", methods=["GET", "POST"])
+def shipping_info():
+    if "user_id" not in session:
+        flash("Please log in to access your cart.", "warning")
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    form = ShippingInformationForm()
+    if "user_id" not in session:
+        return redirect("/login")
+
+    if form.validate_on_submit():
         user_id = session["user_id"]
-        address = request.form.get("address")
-        city = request.form.get("city")
-        state_province = request.form.get("state_province")
-        zipcode = request.form.get("zipcode")
-        country = request.form.get("country")
-        phone = request.form.get("phone")
-        date_of_birth = request.form.get("date_of_birth")
-        
-        shipping_info = ShippingInformation(user_id=user_id, address=address, city=city, state_province=state_province, zipcode=zipcode, country=country, phone=phone, date_of_birth=date_of_birth)
+        shipping_info = ShippingInformation(
+            user_id=user_id, 
+            name=form.name.data, 
+            email=form.email.data, 
+            address=form.address.data, 
+            city=form.city.data, 
+            state_province=form.state_province.data, 
+            zipcode=form.zipcode.data, 
+            country=form.country.data, 
+            phone=form.phone.data, 
+        )
         
         try:
             db.session.add(shipping_info)
             db.session.commit()
-            return redirect("/success")  # Redirect to a success page after submitting shipping information
+            return redirect("/checkout")
         except Exception as e:
             db.session.rollback()
-            return f"Error: {str(e)}"
-    else:
-        return "Method not allowed"  # Only POST requests are allowed for submitting shipping information
+            flash(f'Error: {str(e)}', 'error')
+            return redirect("/shipping_info")
 
-def send_email(subject, body, recipients):
-    msg = Message(subject, recipients=recipients)
-    msg.body = body
-    mail.send(msg)
+    if cart_items:
+        return render_template("shipping_info.html", form=form, cart_items=cart_items, total_price=total_price)
+    else:
+        flash("Your cart is empty.", "warning")
+        return redirect("/homepage")
+
 
 @app.route("/success")
 def payment_success():
     # Fetch user's cart items and shipping information
-    user_id = session["user_id"]
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return "User ID not found", 400
+    user_id = int(user_id)
     cart_items = Cart.query.filter_by(user_id=user_id).all()
     shipping_info = ShippingInformation.query.filter_by(user_id=user_id).first()
 
     # Calculate total price
     total_price = sum(item.product.price * item.quantity for item in cart_items)
-
-    # Send email notification
-    send_email("Your payment was successful", "Thank you for ordering", [shipping_info.email])
 
     return render_template("success.html", cart_items=cart_items, shipping_info=shipping_info, total_price=total_price)
 

@@ -1,0 +1,391 @@
+
+body {
+    background-color: #f0f8f0;
+    color: #333;
+}
+
+.navbar {
+    background-color: #004d40 !important; 
+}
+
+.navbar-brand, .nav-link {
+    color: #ffffff !important; 
+}
+
+.nav-link:hover {
+    background-color: #00695c !important; 
+    color: #ffffff !important;
+}
+
+.nav-item.active .nav-link {
+    background-color: #00796b !important;
+    color: #ffffff !important;
+}
+
+.btn-primary {
+    background-color: #004d40;
+    border-color: #00251a;
+}
+
+.btn-primary:hover {
+    background-color: #00332b;
+    border-color: #00251a;
+}
+
+a, a:hover {
+    color: #004d40;
+}
+
+.form-control {
+    border: 1px solid #004d40;
+}
+
+.form-control:focus {
+    border: 1px solid #00796b;
+    box-shadow: 0 0 0 0.2rem rgba(0, 150, 136, 0.25);
+}
+
+.container, .card {
+    background-color: #ffffff; 
+    border: 1px solid #004d40; 
+}
+
+.card-header, .card-footer {
+    background-color: #e8f5e9; 
+}
+
+
+.card {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    transition: 0.3s;
+}
+
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.card img {
+    width: 100%; 
+    height: auto; 
+    object-fit: cover; 
+    max-height: 200px; 
+}
+
+.card-title {
+    color: #00796b; 
+    font-size: 1.25rem; 
+}
+
+.card-text {
+    font-size: 1rem; 
+    margin-top: 10px; 
+}
+
+@media (max-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+.product-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.product-image {
+    flex: 1 1 60%; 
+    padding: 15px;
+    text-align: center; 
+}
+
+.product-image img {
+    max-width: 100%;
+    height: auto;
+    max-height: 600px; 
+}
+
+.product-details {
+    flex: 1 1 40%; 
+    padding: 15px;
+}
+
+.product-details h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.product-details p {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .product-container {
+        flex-direction: column;
+    }
+
+    .product-image, .product-details {
+        flex: 1 1 100%;
+    }
+}
+
+form {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; 
+}
+
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.card {
+    background-color: #ffffff;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 600px;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+}
+
+.card-title img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+
+.star-rating {
+    color: #ffc107;
+    font-size: 20px;
+}
+
+form {
+    background-color: #ffffff; 
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+label {
+    font-family: Arial, sans-serif; 
+    font-size: 1rem;
+    color: #333; 
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="number"],
+textarea {
+    font-family: Arial, sans-serif; 
+    font-size: 1rem; 
+    color: #333; 
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: none; 
+}
+
+button[type="submit"] {
+    background-color: #4CAF50; 
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 1rem;
+}
+
+button[type="submit"]:hover {
+    background-color: #45a049; 
+}
+
+input[type="number"]:focus,
+textarea:focus {
+    border-color: #4CAF50; 
+    outline: none; 
+}
+
+.header-section {
+    background-color: #ccf5cc; 
+    color: #5e366e; 
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-section {
+    background-color: #004d40; 
+    color: white; 
+    padding: 20px 0;
+}
+
+.navbar-nav {
+    align-items: start;
+}
+
+.nav-item:last-child {
+    margin-left: auto;
+}
+
+body {
+    background-color: #b7e9b7; 
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+.header-section h1 {
+    font-size: 48px; 
+    font-family: 'Castellar'; 
+  }
+
+.header-section p {
+    font-size: 24px; 
+  }
+
+  h1 {
+    font-size: 2rem; 
+    font-weight: bold;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .auth-form input[type="text"], .auth-form input[type="password"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .auth-form input[type="submit"] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .auth-form input[type="submit"]:hover {
+    background-color: #45a049;
+  }
+  
+  .form-page {
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    flex-direction: column;
+  }
+  
+  .form-page form {
+    max-width: 500px;
+    width: 100%;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+  }
+  
+  .form-page input[type="text"], 
+  .form-page input[type="password"], 
+  .form-page input[type="file"], 
+  .form-page input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .form-page input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .form-page input[type="submit"]:hover {
+    background-color: #45a049;
+  }
+  
+  @media (max-width: 768px) {
+    .form-page form {
+      padding: 10px;
+    }
+  }
+  
+  .form-heading {
+    font-size: 2.5rem; 
+    text-align: center;
+    width: 100%;
+  }

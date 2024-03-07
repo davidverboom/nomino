@@ -1,12 +1,19 @@
 <!doctype html>
 <html>
 <head>
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
+    <!-- Header Section -->
+    <div class="header-section" style="background-color: #6fd16f; text-align: center; padding: 20px;">
+        <h1 style="color: #5e366e;">Nomino Furniture</h1>
+        <p style="color: #5e366e;">the best furniture made by Hans Verboom</p>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Navbar</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -20,20 +27,14 @@
                 </li>
                 {% if session.user_id %}
                 <!-- Check if user is logged in -->
-                {% if session.adminusername %}
-                <!-- Check if user is admin -->
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin">Admin Panel</a>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">Logout</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
                 {% else %}
-                <!-- If user is not logged in, show login link -->
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Login</a>
-                </li>
+                    <!-- If user is not logged in, show login link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
                 {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="/cart">Cart</a>
@@ -47,8 +48,28 @@
         {% endblock %}
     </div>
     
+    <footer class="footer-section" style="background-color: #004d40; color: white; text-align: center; padding: 20px;">
+        <p>Contact information:</p>
+        <p>Hans Verboom</p>
+        <p>Nieuwe Uilenburgerstraat 63</p>
+        <p>+31 6 468 77 77 0</p>
+        <p style="margin-bottom: 20px;"> hansverboom@gmail.com</p>
+        <a href="/admin">Admin Panel</a>
+    </footer>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask + Stripe Checkout</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.130.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/@google/model-viewer"></script>
 </body>
 </html>

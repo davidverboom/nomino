@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <!-- Shipping Information Form -->
+    <h1 class="form-heading"><strong>Shipping Information</strong></h1>
+    <form method="POST" action="{{ url_for('shipping_info') }}">
+        {{ form.hidden_tag() }}
+        <div>{{ form.name.label }} {{ form.name() }}</div>
+        <div>{{ form.email.label }} {{ form.email() }}</div>
+        <div>{{ form.address.label }} {{ form.address() }}</div>
+        <div>{{ form.city.label }} {{ form.city() }}</div>
+        <div>{{ form.state_province.label }} {{ form.state_province() }}</div>
+        <div>{{ form.zipcode.label }} {{ form.zipcode() }}</div>
+        <div>{{ form.country.label }} {{ form.country() }}</div>
+        <div>{{ form.phone.label }} {{ form.phone() }}</div>
+        <div>{{ form.submit() }}</div>
+    </form>
+</div>
+{% endblock %}
+

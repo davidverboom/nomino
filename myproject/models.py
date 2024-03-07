@@ -17,13 +17,16 @@ class Review(db.Model):
     stars = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String, nullable=False)
 
+    user = db.relationship('Accounts', backref=db.backref('reviews', lazy=True))
+
 class Product(db.Model):
     __tablename__ = "products"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     price = db.Column(db.Float, nullable=False)
     image = db.Column(db.String, nullable=False)
-
+    description = db.Column(db.String, nullable=False)
+    
 class Cart(db.Model):
     __tablename__ = "cart"
     id = db.Column(db.Integer, primary_key=True)
@@ -36,7 +39,7 @@ class Cart(db.Model):
 class ShippingInformation(db.Model):
     __tablename__ = "shipping_information"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    order_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     name = db.Column(db.String, nullable=False) 
     email = db.Column(db.String, nullable=False)
     address = db.Column(db.String, nullable=True)
@@ -45,4 +48,3 @@ class ShippingInformation(db.Model):
     zipcode = db.Column(db.String, nullable=True)
     country = db.Column(db.String, nullable=True)
     phone = db.Column(db.String, nullable=True)
-    date_of_birth = db.Column(db.Date, nullable=True)
