@@ -1,14 +1,27 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, FloatField, DateField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import StringField, FloatField, SubmitField, PasswordField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from models import Accounts
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirmation = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    profile_picture = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
+    submit = SubmitField('Register')
+
+    def validate_username(self, username):
+        user = Accounts.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('That username is already taken. Please choose a different one.')
 
 class AddProductForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
     image = FileField('Product Image', validators=[FileAllowed(['jpg', 'png', 'avif'], 'Images only!')])
     description = StringField('Description', validators=[DataRequired()])
-    three_d_view = FileField('3D View File', validators=[FileAllowed(['gltf'], 'GLTF files only!')])
 
 class ShippingInformationForm(FlaskForm):
     name = StringField('Full name', validators=[DataRequired()])

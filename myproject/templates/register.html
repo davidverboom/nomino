@@ -1,20 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Registers Page{% endblock %}
+{% block title %}Register Page{% endblock %}
 
 {% block content %}
 <div class="auth-form">
-    <form action="/register" method="post">
-        <p>Username:</p>
-        <p><input type="text" name="username" /></p>
-        <p>E-mail:</p>
-        <p><input type="text" name="email" /></p>
-        <p>Password:</p>
-        <p><input type="text" name="password" /></p>
-        <p>Confirmation:</p>
-        <p><input type="text" name="confirmation" /></p>
-        <p>Profile picture:</p>
-        <p><input type="file" name= "profile_picture"/></p>
-        <p><input type="submit" value="Submit"/></p>
+    <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <p>{{ form.username.label }}<br>{{ form.username(size=32) }}</p>
+        {% for error in form.username.errors %}
+        <p style="color: red;">{{ error }}</p>
+        {% endfor %}
+
+        <p>{{ form.email.label }}<br>{{ form.email(size=32) }}</p>
+        {% for error in form.email.errors %}
+        <p style="color: red;">{{ error }}</p>
+        {% endfor %}
+
+        <p>{{ form.password.label }}<br>{{ form.password(size=32) }}</p>
+        {% for error in form.password.errors %}
+        <p style="color: red;">{{ error }}</p>
+        {% endfor %}
+
+        <p>{{ form.confirmation.label }}<br>{{ form.confirmation(size=32) }}</p>
+        {% for error in form.confirmation.errors %}
+        <p style="color: red;">{{ error }}</p>
+        {% endfor %}
+
+        <p>{{ form.profile_picture.label }}<br>{{ form.profile_picture() }}</p>
+        {% for error in form.profile_picture.errors %}
+        <p style="color: red;">{{ error }}</p>
+        {% endfor %}
+
+        <p>{{ form.submit() }}</p>
     </form>
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@
 
 {% block title %}Admin Panel{% endblock %}
 
+<!-- Add a new product to the collection-->
 {% block content %}
 <h1 class="form-heading">Admin Panel</h1>
 <form method="POST" enctype="multipart/form-data">
@@ -21,6 +22,7 @@
     <button type="submit" class="btn btn-primary">Add Product</button>
 </form>
 
+<!-- Edit product collection option for the admin-->
 <div class="row">
     {% for product in products %}
     <div class="col-md-4">

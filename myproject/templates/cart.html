@@ -2,6 +2,7 @@
 
 {% block title %}Shopping Cart{% endblock %}
 
+<!-- View your shopping cart-->
 {% block content %}
 <div class="form-page">
     <h1>Your Shopping Cart</h1>
@@ -37,6 +38,7 @@
             </tr>
         </tbody>
     </table>
+    <!-- Move to the shipping info section-->
     <a href="{{ url_for('shipping_info') }}" class="btn btn-primary">Proceed to Checkout</a>
     {% else %}
     <p>Your cart is empty.</p>
