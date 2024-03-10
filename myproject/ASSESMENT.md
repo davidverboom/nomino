@@ -1,0 +1,7 @@
+# Assessment
+
+In mijn eerste plan had ik beschreven dat ik een csv bestand wilde uploaden met alle informatie over de meubels die op de site zouden komen te staan. Dit heb ik echter verholpen met een admin panel. Ik ben hier wel trots op omdat dit de site eigenlijk extreem gebruiksvriendelijk maakt doordat mijn vader uiteindelijk dan. Naast de admin panel heb ik ook beslissingen genomen om bepaalde dingen te schrappen.
+
+Na het maken van de basis van mijn website heb ik gekeken naar het toevoegen van een 3D optie. Echter, na heel erg veel pogingen via three.js en babylon.js, wat flink wat tijd in beslag nam, heb ik het gelaten en besloten meer te focussen op het goed afwerken van mijn gekoppelde betalings-API via Stripe en het stylen van mijn site via CSS. Dit is een keuze met voor- en nadelen. Een nadeel is dat ik nu minder unieke features heb op mijn website, maar een voordeel is dat mijn betalingsfunctie nu wel nagenoeg perfect werkt en de site veel styling heeft via CSS waardoor de basis er wel goed uit ziet.
+
+Daarnaast heb ik een e-mail functie toegevoegd. Dit heb ik gedaan om de experience van een webshop net wat completer te maken. Dit was mijn originele plan en had ik erin verwerkt. Hij leek het echter niet te doen door de nieuwe regelgeving van Google inloggegevens. Op het einde heb ik echter toch wel een werkende oplossing gevonden waardoor nu toch de webshop een fijne ervaring heeft met alle echt nodige features.

@@ -34,6 +34,7 @@ app.config['SECRET_KEY'] = '4d40fd7fcac258f0aa974b12a1422f10'
 app.config["MAIL_SERVER"] = 'smtp.gmail.com'
 app.config["MAIL_PORT"] = 465
 app.config["MAIL_USERNAME"] = 'oefenflaskminprog@gmail.com'
+app.config["MAIL_DEFAULT_SENDER"] = 'oefenflaskminprog@gmail.com'
 app.config["MAIL_PASSWORD"] = 'opda qkvv xebz lldi'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
@@ -50,6 +51,14 @@ Session(app)
 """
 app features based on accounts and usersettings
 """
+
+
+@app.route("/")
+def index():
+    if "user_id" in session:
+        return redirect("/homepage")
+    else:
+        return redirect("/login")
 
 
 @app.route('/login', methods=['GET', 'POST'])
