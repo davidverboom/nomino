@@ -1,6 +1,6 @@
 # Het Nomino Project
 
-![homepage](/static/uploads/homepage.png)
+![homepage](/static/uploads/homepage.PNG)
 
 ## David Verboom - Het nomino project
 
@@ -22,7 +22,7 @@ psql -U postgres:
 
 3. API-key van Stripe koppelen:
 
-![Stripe Afbeelding](/static/uploads/stripe.png)
+![Stripe Afbeelding](/static/uploads/stripe.PNG)
 
 export STRIPE_PUBLISHABLE_KEY="de publishable key"
 export STRIPE_SECRET_KEY="de secret key"
@@ -33,7 +33,7 @@ flask run
 
 De code in de map `main.js` in `static` is direct overgenomen van Michael Herman op de site [testdriven.io](https://testdriven.io/blog/flask-stripe-tutorial/).
 
-![product Afbeelding](/static/uploads/product.png)
+![product Afbeelding](/static/uploads/product.PNG)
 
 Alle afbeeldingen zijn afkomstig van het account NominoNL op Etsy.com:
 [https://www.etsy.com/nl/shop/NominoNL?ref=shop-header-name&listing_id=883457845&from_page=listing](https://www.etsy.com/nl/shop/NominoNL?ref=shop-header-name&listing_id=883457845&from_page=listing)
