@@ -22,8 +22,6 @@ psql -U postgres:
 
 3. API-key van Stripe koppelen:
 
-![Stripe Afbeelding](/myproject/static/uploads/stripe.png)
-
 export STRIPE_PUBLISHABLE_KEY="de publishable key"
 export STRIPE_SECRET_KEY="de secret key"
 
@@ -33,10 +31,10 @@ flask run
 
 De code in de map `main.js` in `static` is direct overgenomen van Michael Herman op de site [testdriven.io](https://testdriven.io/blog/flask-stripe-tutorial/).
 
-![product Afbeelding](/myproject/static/uploads/product.png)
-
 Alle afbeeldingen zijn afkomstig van het account NominoNL op Etsy.com:
 [https://www.etsy.com/nl/shop/NominoNL?ref=shop-header-name&listing_id=883457845&from_page=listing](https://www.etsy.com/nl/shop/NominoNL?ref=shop-header-name&listing_id=883457845&from_page=listing)
+
+![product Afbeelding](/myproject/static/uploads/product.png)
 
 De visuele weergave van de webshop is te zien met de volgende link:
 [https://youtu.be/CnYrKM8i3AE](https://youtu.be/CnYrKM8i3AE)
